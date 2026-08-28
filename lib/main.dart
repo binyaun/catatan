@@ -26,7 +26,10 @@ class _CatatanPolnesAppState extends State<CatatanPolnesApp> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryTeal = Color(0xFF00695C);
+    // Gen Z Electric Purple / Violet primary theme
+    const primaryViolet = Color(0xFF6C5CE7);
+    const darkBackground = Color(0xFF12131C);
+    const darkSurface = Color(0xFF1E1E2C);
 
     return MaterialApp(
       title: 'Catatan POLNES',
@@ -35,18 +38,57 @@ class _CatatanPolnesAppState extends State<CatatanPolnesApp> {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryTeal,
+          seedColor: primaryViolet,
           brightness: Brightness.light,
+          primary: primaryViolet,
+          surfaceTint: primaryViolet.withValues(alpha: 0.05),
         ),
-        appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        appBarTheme: const AppBarTheme(
+          centerTitle: false,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: primaryTeal,
+          seedColor: primaryViolet,
           brightness: Brightness.dark,
+          surface: darkSurface,
         ),
-        appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
+        scaffoldBackgroundColor: darkBackground,
+        appBarTheme: const AppBarTheme(
+          centerTitle: false,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
       ),
       home: HomeScreen(
         onToggleDarkMode: _toggleDarkMode,

@@ -56,8 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
             SnackBar(
               content: Text(
                 note == null
-                    ? 'Catatan baru berhasil ditambahkan!'
-                    : 'Catatan berhasil diperbarui!',
+                    ? 'Catatan baru berhasil ditambahkan! ✨'
+                    : 'Catatan berhasil diperbarui! 🚀',
+              ),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
               duration: const Duration(seconds: 2),
             ),
@@ -71,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: SingleChildScrollView(
@@ -84,18 +88,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: 10,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: note.priorityColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'Prioritas ${note.priorityLabel}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: note.priorityColor,
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -112,17 +117,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Kategori: ${note.category}',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Kategori: ${note.category}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
                 const Divider(height: 24),
                 Text(
                   note.content,
-                  style: const TextStyle(fontSize: 15, height: 1.4),
+                  style: const TextStyle(fontSize: 15, height: 1.5),
                 ),
                 if (note.todos.isNotEmpty) ...[
                   const SizedBox(height: 16),
@@ -134,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ...note.todos.map(
                     (todo) => CheckboxListTile(
                       dense: true,
+                      activeColor: Theme.of(context).colorScheme.primary,
                       title: Text(
                         todo.title,
                         style: TextStyle(
@@ -162,7 +180,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   Wrap(
                     spacing: 6,
                     children: note.tags
-                        .map((tag) => Chip(label: Text(tag)))
+                        .map(
+                          (tag) => Chip(
+                            label: Text(tag),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
@@ -170,15 +195,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.copy),
-                      tooltip: 'Salin Teks Ringkasan',
+                    IconButton.filledTonal(
+                      icon: const Icon(Icons.copy_rounded, size: 20),
+                      tooltip: 'Salin Ringkasan Catatan',
                       onPressed: () {
                         final summaryText = '${note.title}\n\n${note.content}';
                         Clipboard.setData(ClipboardData(text: summaryText));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Catatan berhasil disalin!'),
+                          SnackBar(
+                            content: const Text('Catatan berhasil disalin! 📋'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         );
                       },
@@ -195,6 +224,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                           child: const Text('Tutup'),
                         ),
                       ],
@@ -219,13 +253,13 @@ class _HomeScreenState extends State<HomeScreen> {
   String get _currentTabTitle {
     switch (_filterType) {
       case 'pinned':
-        return 'Catatan Disematkan';
+        return 'Disematkan 📌';
       case 'archived':
-        return 'Catatan Diarsip';
+        return 'Diarsip 📦';
       case 'trash':
-        return 'Kotak Sampah';
+        return 'Kotak Sampah 🗑️';
       default:
-        return 'Catatan POLNES';
+        return 'Catatan POLNES ✨';
     }
   }
 
@@ -249,31 +283,37 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               _currentTabTitle,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
             ),
             Text(
               'Politeknik Negeri Samarinda',
               style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer.withValues(
-                  alpha: 0.7,
-                ),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(
+              widget.isDarkMode
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+            ),
             tooltip: widget.isDarkMode ? 'Mode Terang' : 'Mode Gelap',
             onPressed: widget.onToggleDarkMode,
           ),
           IconButton(
-            icon: const Icon(Icons.bar_chart),
+            icon: const Icon(Icons.bar_chart_rounded),
             tooltip: 'Statistik Catatan',
             onPressed: _showStats,
           ),
           PopupMenuButton<NoteSortOption>(
-            icon: const Icon(Icons.sort),
+            icon: const Icon(Icons.swap_vert_rounded),
             tooltip: 'Urutkan Catatan',
             onSelected: (option) {
               setState(() {
@@ -300,7 +340,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           IconButton(
-            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+            icon: Icon(
+              _isGridView ? Icons.view_agenda_rounded : Icons.grid_view_rounded,
+            ),
             tooltip: _isGridView ? 'Tampilan List' : 'Tampilan Grid',
             onPressed: () {
               setState(() {
@@ -308,76 +350,120 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
+          const SizedBox(width: 4),
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: theme.colorScheme.primary),
-              accountName: const Text(
-                'Mahasiswa POLNES',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-              accountEmail: const Text('praktikum.mobile@polnes.ac.id'),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Icon(Icons.school, size: 36, color: Color(0xFF00695C)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.school_rounded,
+                      size: 32,
+                      color: Color(0xFF6C5CE7),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Mahasiswa POLNES 🎓',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'praktikum.mobile@polnes.ac.id',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                ],
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.note_alt_outlined),
-              title: const Text('Semua Catatan Aktif'),
-              selected: _filterType == 'active',
-              onTap: () {
-                setState(() {
-                  _filterType = 'active';
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.push_pin_outlined),
-              title: const Text('Disematkan (Pinned)'),
-              selected: _filterType == 'pinned',
-              onTap: () {
-                setState(() {
-                  _filterType = 'pinned';
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.archive_outlined),
-              title: const Text('Diarsip (Archived)'),
-              selected: _filterType == 'archived',
-              onTap: () {
-                setState(() {
-                  _filterType = 'archived';
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: const Text('Kotak Sampah (Trash)'),
-              selected: _filterType == 'trash',
-              onTap: () {
-                setState(() {
-                  _filterType = 'trash';
-                });
-                Navigator.pop(context);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.analytics_outlined),
-              title: const Text('Dashboard Statistik'),
-              onTap: () {
-                Navigator.pop(context);
-                _showStats();
-              },
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.note_alt_rounded),
+                    title: const Text('Semua Catatan Aktif'),
+                    selected: _filterType == 'active',
+                    onTap: () {
+                      setState(() {
+                        _filterType = 'active';
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.push_pin_rounded),
+                    title: const Text('Disematkan (Pinned)'),
+                    selected: _filterType == 'pinned',
+                    onTap: () {
+                      setState(() {
+                        _filterType = 'pinned';
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.archive_rounded),
+                    title: const Text('Diarsip (Archived)'),
+                    selected: _filterType == 'archived',
+                    onTap: () {
+                      setState(() {
+                        _filterType = 'archived';
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete_rounded),
+                    title: const Text('Kotak Sampah (Trash)'),
+                    selected: _filterType == 'trash',
+                    onTap: () {
+                      setState(() {
+                        _filterType = 'trash';
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.analytics_rounded),
+                    title: const Text('Dashboard Statistik'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showStats();
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -389,11 +475,11 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: TextField(
               decoration: InputDecoration(
-                hintText: 'Cari berdasarkan judul, isi, atau #tag...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Cari catatan, isi, atau #tag...',
+                prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.clear_rounded),
                         onPressed: () {
                           setState(() {
                             _searchQuery = '';
@@ -403,11 +489,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     : null,
                 filled: true,
                 fillColor: theme.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
+                  alpha: 0.4,
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -425,11 +511,6 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                const Text(
-                  'Kategori:',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
                 ..._categories.map((category) {
                   final isSelected = _selectedCategory == category;
                   return Padding(
@@ -444,6 +525,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         }
                       },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   );
                 }),
@@ -457,11 +541,6 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const Text(
-                    'Tag:',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 8),
                   ...allTags.map((tag) {
                     final isSelected = _selectedTag == tag;
                     return Padding(
@@ -474,6 +553,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             _selectedTag = selected ? tag : 'Semua';
                           });
                         },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
                     );
                   }),
@@ -492,7 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           _filterType == 'trash'
-                              ? Icons.delete_sweep_outlined
+                              ? Icons.delete_sweep_rounded
                               : Icons.note_alt_outlined,
                           size: 72,
                           color: theme.colorScheme.outline,
@@ -501,15 +583,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           _filterType == 'trash'
                               ? 'Kotak sampah kosong'
-                              : 'Tidak ada catatan ditemukan',
+                              : 'Belum ada catatan nih 📝',
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.outline,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
                         if (_filterType != 'trash')
                           Text(
-                            'Tekan tombol + untuk membuat catatan baru',
+                            'Tekan tombol + di bawah untuk membuat catatan baru!',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.outline,
                             ),
@@ -611,7 +694,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openNoteEditor(),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Icons.add_rounded),
         label: const Text('Tambah Catatan'),
       ),
     );

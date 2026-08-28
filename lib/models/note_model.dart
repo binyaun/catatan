@@ -63,13 +63,14 @@ class Note {
     );
   }
 
+  // Gen Z Vibrant Pastel Palette
   static const List<Color> noteColors = [
-    Color(0xFFE8F5E9), // Light Green
-    Color(0xFFE3F2FD), // Light Blue
-    Color(0xFFFFF3E0), // Light Orange
-    Color(0xFFF3E5F5), // Light Purple
-    Color(0xFFFFEBEE), // Light Red
-    Color(0xFFE0F2F1), // Light Teal
+    Color(0xFFF3E8FF), // Soft Lavender
+    Color(0xFFE0F2FE), // Ice Sky Blue
+    Color(0xFFDCFCE7), // Fresh Mint
+    Color(0xFFFFEDD5), // Peach Sorbet
+    Color(0xFFFEF9C3), // Butter Yellow
+    Color(0xFFFFE4E6), // Cotton Pink
   ];
 
   Color get color => noteColors[colorIndex % noteColors.length];
@@ -93,11 +94,11 @@ class Note {
   Color get priorityColor {
     switch (priority) {
       case NotePriority.high:
-        return const Color(0xFFE53935);
+        return const Color(0xFFFF3366); // Neon Rose/Crimson
       case NotePriority.medium:
-        return const Color(0xFFFB8C00);
+        return const Color(0xFFFF9F43); // Vivid Tangerine
       case NotePriority.low:
-        return const Color(0xFF43A047);
+        return const Color(0xFF10B981); // Emerald Green
     }
   }
 }

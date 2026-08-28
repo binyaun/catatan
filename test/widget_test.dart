@@ -11,7 +11,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify app title & branding header
-    expect(find.text('Catatan POLNES'), findsOneWidget);
+    expect(find.text('Catatan POLNES ✨'), findsOneWidget);
     expect(find.text('Politeknik Negeri Samarinda'), findsOneWidget);
 
     // Verify initial mock notes & tags
@@ -21,7 +21,7 @@ void main() {
     );
 
     // Open statistics dialog
-    await tester.tap(find.byIcon(Icons.bar_chart));
+    await tester.tap(find.byIcon(Icons.bar_chart_rounded));
     await tester.pumpAndSettle();
     expect(find.text('Statistik Catatan POLNES'), findsOneWidget);
 
@@ -30,7 +30,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Open note editor dialog
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.byIcon(Icons.add_rounded));
     await tester.pumpAndSettle();
 
     // Verify fields in NoteEditorDialog
