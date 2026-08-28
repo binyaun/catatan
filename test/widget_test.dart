@@ -3,25 +3,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:catatan_polnes/main.dart';
 
 void main() {
-  testWidgets('Catatan POLNES smoke test', (WidgetTester tester) async {
+  testWidgets('Catatan POLNES smoke and UI feature test', (
+    WidgetTester tester,
+  ) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const CatatanPolnesApp());
     await tester.pumpAndSettle();
 
-    // Verify that the app bar title and initial notes are displayed.
+    // Verify app title & branding header
     expect(find.text('Catatan POLNES'), findsOneWidget);
     expect(find.text('Politeknik Negeri Samarinda'), findsOneWidget);
+
+    // Verify initial mock notes & tags
     expect(
       find.text('Praktikum Pemrograman Perangkat Bergerak'),
       findsOneWidget,
     );
 
-    // Tap the 'Tambah Catatan' FloatingActionButton and trigger a frame.
+    // Open statistics dialog
+    await tester.tap(find.byIcon(Icons.bar_chart));
+    await tester.pumpAndSettle();
+    expect(find.text('Statistik Catatan POLNES'), findsOneWidget);
+
+    // Close statistics dialog
+    await tester.tap(find.text('Tutup'));
+    await tester.pumpAndSettle();
+
+    // Open note editor dialog
     await tester.tap(find.byIcon(Icons.add));
     await tester.pumpAndSettle();
 
-    // Verify that the dialog is displayed.
+    // Verify fields in NoteEditorDialog
     expect(find.text('Tambah Catatan Baru'), findsOneWidget);
-    expect(find.text('Judul Catatan'), findsOneWidget);
+    expect(find.text('Checklist Sub-Task:'), findsOneWidget);
+    expect(find.text('Tags / Label (#Hashtag):'), findsOneWidget);
   });
 }
