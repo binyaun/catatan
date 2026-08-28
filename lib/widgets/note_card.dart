@@ -32,254 +32,329 @@ class NoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Card(
-      elevation: note.isPinned ? 3 : 1,
-      color: note.color,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: note.isPinned
-            ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
-            : BorderSide.none,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? theme.colorScheme.surface : note.color,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: note.isPinned
+              ? theme.colorScheme.primary
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05)),
+          width: note.isPinned ? 2 : 1,
+        ),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header: Priority Badge & Title & Actions
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: note.priorityColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: note.priorityColor.withValues(alpha: 0.5),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      note.priorityLabel,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: note.priorityColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      note.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (!note.isTrashed)
-                    IconButton(
-                      icon: Icon(
-                        note.isPinned
-                            ? Icons.push_pin
-                            : Icons.push_pin_outlined,
-                        size: 18,
-                        color: note.isPinned
-                            ? theme.colorScheme.primary
-                            : Colors.grey[600],
-                      ),
-                      onPressed: onTogglePin,
-                      tooltip: note.isPinned ? 'Lepas Pin' : 'Sematkan',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(2),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-
-              // Content snippet
-              Text(
-                note.content,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.black.withValues(alpha: 0.75),
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              // Checklist summary if available
-              if (note.todos.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(22),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Row: Priority Pill & Pin / Action Icon
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.check_box_outlined,
-                          size: 14,
-                          color: theme.colorScheme.primary,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: note.priorityColor.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: note.priorityColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            note.priorityLabel,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: note.priorityColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (!note.isTrashed)
+                      GestureDetector(
+                        onTap: onTogglePin,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: note.isPinned
+                                ? theme.colorScheme.primary.withValues(
+                                    alpha: 0.15,
+                                  )
+                                : Colors.transparent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            note.isPinned
+                                ? Icons.push_pin_rounded
+                                : Icons.push_pin_outlined,
+                            size: 16,
+                            color: note.isPinned
+                                ? theme.colorScheme.primary
+                                : Colors.grey[600],
+                          ),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Sub-task (${note.completedTodosCount}/${note.totalTodosCount})',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.primary,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Note Title
+                Text(
+                  note.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                    height: 1.25,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+
+                // Note Content snippet
+                Text(
+                  note.content,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? Colors.white70
+                        : Colors.black.withValues(alpha: 0.7),
+                    fontSize: 13,
+                    height: 1.35,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                // Checklist Progress Bar & Items Preview
+                if (note.todos.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.task_alt_rounded,
+                                  size: 13,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Checklist',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '${note.completedTodosCount}/${note.totalTodosCount}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: note.todoProgressRatio,
+                            minHeight: 4,
+                            backgroundColor: theme.colorScheme.primary
+                                .withValues(alpha: 0.15),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.primary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: note.todoProgressRatio,
-                        minHeight: 4,
-                        backgroundColor: Colors.black.withValues(alpha: 0.1),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          theme.colorScheme.primary,
+                  ),
+                ],
+
+                // Tags Chips
+                if (note.tags.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: note.tags.take(3).map((tag) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+                const Divider(height: 1, thickness: 0.5),
+                const SizedBox(height: 8),
+
+                // Card Footer: Category badge, Date, and Actions
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.12,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          note.category,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _formatDate(note.createdAt),
+                          style: TextStyle(
+                            color: isDark ? Colors.white38 : Colors.grey[600],
+                            fontSize: 10,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        if (!note.isTrashed) ...[
+                          InkWell(
+                            onTap: onToggleArchive,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Icon(
+                                note.isArchived
+                                    ? Icons.unarchive_rounded
+                                    : Icons.archive_outlined,
+                                size: 15,
+                                color: Colors.indigo,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: onDeleteOrTrash,
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                size: 15,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          InkWell(
+                            onTap: onToggleArchive,
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(
+                                Icons.restore_from_trash_rounded,
+                                size: 15,
+                                color: Colors.teal,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: onDeleteOrTrash,
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Icon(
+                                Icons.delete_forever_rounded,
+                                size: 15,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ],
-
-              // Tags if available
-              if (note.tags.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 2,
-                  children: note.tags.take(3).map((tag) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-
-              const SizedBox(height: 8),
-
-              // Footer: Category, Date, Actions (Archive / Delete)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        note.category,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.primary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _formatDate(note.createdAt),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                          fontSize: 10,
-                        ),
-                      ),
-                      if (!note.isTrashed) ...[
-                        IconButton(
-                          icon: Icon(
-                            note.isArchived
-                                ? Icons.unarchive_outlined
-                                : Icons.archive_outlined,
-                            size: 16,
-                            color: Colors.indigo,
-                          ),
-                          onPressed: onToggleArchive,
-                          tooltip: note.isArchived ? 'Buka Arsip' : 'Arsipkan',
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(2),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            size: 16,
-                            color: Colors.redAccent,
-                          ),
-                          onPressed: onDeleteOrTrash,
-                          tooltip: 'Buang ke Sampah',
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(2),
-                        ),
-                      ] else ...[
-                        IconButton(
-                          icon: const Icon(
-                            Icons.restore_from_trash,
-                            size: 16,
-                            color: Colors.teal,
-                          ),
-                          onPressed: onToggleArchive, // Used as restore
-                          tooltip: 'Pulihkan Catatan',
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(2),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_forever,
-                            size: 16,
-                            color: Colors.red,
-                          ),
-                          onPressed: onDeleteOrTrash, // Permanent delete
-                          tooltip: 'Hapus Permanen',
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(2),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       ),

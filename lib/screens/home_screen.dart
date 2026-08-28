@@ -266,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = widget.isDarkMode;
     final displayedNotes = _repository.getFilteredNotes(
       filterType: _filterType,
       searchQuery: _searchQuery,
@@ -274,6 +275,9 @@ class _HomeScreenState extends State<HomeScreen> {
       sortOption: _sortOption,
     );
 
+    final stats = _repository.getStatistics();
+    final totalNotesCount = stats['totalNotes'] as int;
+    final pinnedNotesCount = stats['totalPinned'] as int;
     final allTags = ['Semua', ..._repository.getAllTags()];
 
     return Scaffold(
@@ -470,9 +474,71 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
+          // Hero Summary Banner Card
+          if (_filterType == 'active')
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF2A2B3D), const Color(0xFF1E1E2C)]
+                        : [const Color(0xFFEEF2FF), const Color(0xFFE0E7FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.waving_hand_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Halo, Mahasiswa POLNES! 👋',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$totalNotesCount catatan aktif • $pinnedNotesCount disematkan',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Search Field
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Cari catatan, isi, atau #tag...',
@@ -505,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Categories & Tags Filter Chips
+          // Categories Horizontal List
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -565,7 +631,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           const SizedBox(height: 8),
 
-          // Notes List or Grid
+          // Notes Grid / List
           Expanded(
             child: displayedNotes.isEmpty
                 ? Center(
@@ -602,13 +668,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 : _isGridView
                 ? GridView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 0.72,
+                          childAspectRatio: 0.65,
                         ),
                     itemCount: displayedNotes.length,
                     itemBuilder: (context, index) {
@@ -648,7 +714,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                     itemCount: displayedNotes.length,
                     itemBuilder: (context, index) {
                       final note = displayedNotes[index];
