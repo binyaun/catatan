@@ -116,14 +116,30 @@ class NoteRepository {
     }
   }
 
-  void toggleArchive(String id) {
+  void setArchiveState(String id, bool archive) {
     final index = _notes.indexWhere((n) => n.id == id);
     if (index >= 0) {
       final current = _notes[index];
       _notes[index] = current.copyWith(
-        isArchived: !current.isArchived,
-        isPinned: false,
+        isArchived: archive,
+        isPinned: archive ? false : current.isPinned,
       );
+    }
+  }
+
+  void toggleArchive(String id) {
+    final index = _notes.indexWhere((n) => n.id == id);
+    if (index >= 0) {
+      final current = _notes[index];
+      setArchiveState(id, !current.isArchived);
+    }
+  }
+
+  void unarchiveAll() {
+    for (var i = 0; i < _notes.length; i++) {
+      if (_notes[i].isArchived && !_notes[i].isTrashed) {
+        _notes[i] = _notes[i].copyWith(isArchived: false);
+      }
     }
   }
 
@@ -235,8 +251,10 @@ class NoteRepository {
 
   Map<String, dynamic> getStatistics() {
     final activeNotes = _notes.where((n) => !n.isTrashed).toList();
-    final totalNotes = activeNotes.length;
-    final totalPinned = activeNotes.where((n) => n.isPinned).length;
+    final totalNotes = activeNotes.where((n) => !n.isArchived).length;
+    final totalPinned = activeNotes
+        .where((n) => n.isPinned && !n.isArchived)
+        .length;
     final totalArchived = activeNotes.where((n) => n.isArchived).length;
 
     int totalTodos = 0;

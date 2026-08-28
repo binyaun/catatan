@@ -24,7 +24,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final NoteRepository _repository = NoteRepository();
 
-  String _filterType = 'active'; // 'active', 'pinned', 'archived', 'trash'
+  int _navIndex = 0;
+  final List<String> _navFilterTypes = [
+    'active',
+    'pinned',
+    'archived',
+    'trash',
+  ];
+
+  String get _filterType => _navFilterTypes[_navIndex];
+
   String _searchQuery = '';
   String _selectedCategory = 'Semua';
   String _selectedTag = 'Semua';
@@ -38,6 +47,50 @@ class _HomeScreenState extends State<HomeScreen> {
     'Tugas',
     'Lainnya',
   ];
+
+  void _archiveNoteWithUndo(Note note) {
+    setState(() {
+      _repository.setArchiveState(note.id, true);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Catatan "${note.title}" dipindahkan ke Arsip 📦'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: SnackBarAction(
+          label: 'BATAL',
+          onPressed: () {
+            setState(() {
+              _repository.setArchiveState(note.id, false);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _unarchiveNoteWithUndo(Note note) {
+    setState(() {
+      _repository.setArchiveState(note.id, false);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Catatan "${note.title}" dipulihkan dari Arsip ✨'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: SnackBarAction(
+          label: 'BATAL',
+          onPressed: () {
+            setState(() {
+              _repository.setArchiveState(note.id, true);
+            });
+          },
+        ),
+      ),
+    );
+  }
 
   void _openNoteEditor([Note? note]) {
     showDialog(
@@ -255,12 +308,111 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'pinned':
         return 'Disematkan 📌';
       case 'archived':
-        return 'Diarsip 📦';
+        return 'Arsip Catatan 📦';
       case 'trash':
         return 'Kotak Sampah 🗑️';
       default:
         return 'Catatan POLNES ✨';
     }
+  }
+
+  Widget _buildNoteCardItem(Note note) {
+    return Dismissible(
+      key: Key(note.id),
+      direction: _filterType == 'trash'
+          ? DismissDirection.none
+          : DismissDirection.horizontal,
+      background: Container(
+        decoration: BoxDecoration(
+          color: note.isArchived ? Colors.teal : Colors.indigo,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        child: Row(
+          children: [
+            Icon(
+              note.isArchived ? Icons.unarchive_rounded : Icons.archive_rounded,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              note.isArchived ? 'Pulihkan' : 'Arsipkan',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      secondaryBackground: Container(
+        decoration: BoxDecoration(
+          color: note.isArchived ? Colors.teal : Colors.indigo,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              note.isArchived ? 'Pulihkan' : 'Arsipkan',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              note.isArchived ? Icons.unarchive_rounded : Icons.archive_rounded,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+      onDismissed: (_) {
+        if (note.isArchived) {
+          _unarchiveNoteWithUndo(note);
+        } else {
+          _archiveNoteWithUndo(note);
+        }
+      },
+      child: NoteCard(
+        note: note,
+        onTap: () => _showNoteDetails(note),
+        onTogglePin: () {
+          setState(() {
+            _repository.togglePin(note.id);
+          });
+        },
+        onToggleArchive: () {
+          if (note.isTrashed) {
+            setState(() {
+              _repository.restoreFromTrash(note.id);
+            });
+          } else if (note.isArchived) {
+            _unarchiveNoteWithUndo(note);
+          } else {
+            _archiveNoteWithUndo(note);
+          }
+        },
+        onDeleteOrTrash: () {
+          setState(() {
+            if (note.isTrashed) {
+              _repository.deletePermanently(note.id);
+            } else {
+              _repository.moveToTrash(note.id);
+            }
+          });
+        },
+        onToggleTodo: (todoId) {
+          setState(() {
+            _repository.toggleTodoStatus(note.id, todoId);
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -278,6 +430,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final stats = _repository.getStatistics();
     final totalNotesCount = stats['totalNotes'] as int;
     final pinnedNotesCount = stats['totalPinned'] as int;
+    final archivedNotesCount = stats['totalArchived'] as int;
     final allTags = ['Semua', ..._repository.getAllTags()];
 
     return Scaffold(
@@ -416,10 +569,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     leading: const Icon(Icons.note_alt_rounded),
                     title: const Text('Semua Catatan Aktif'),
-                    selected: _filterType == 'active',
+                    selected: _navIndex == 0,
                     onTap: () {
                       setState(() {
-                        _filterType = 'active';
+                        _navIndex = 0;
                       });
                       Navigator.pop(context);
                     },
@@ -427,21 +580,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     leading: const Icon(Icons.push_pin_rounded),
                     title: const Text('Disematkan (Pinned)'),
-                    selected: _filterType == 'pinned',
+                    selected: _navIndex == 1,
                     onTap: () {
                       setState(() {
-                        _filterType = 'pinned';
+                        _navIndex = 1;
                       });
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.archive_rounded),
-                    title: const Text('Diarsip (Archived)'),
-                    selected: _filterType == 'archived',
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Diarsip (Archived)'),
+                        if (archivedNotesCount > 0)
+                          Badge(label: Text('$archivedNotesCount')),
+                      ],
+                    ),
+                    selected: _navIndex == 2,
                     onTap: () {
                       setState(() {
-                        _filterType = 'archived';
+                        _navIndex = 2;
                       });
                       Navigator.pop(context);
                     },
@@ -449,10 +609,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ListTile(
                     leading: const Icon(Icons.delete_rounded),
                     title: const Text('Kotak Sampah (Trash)'),
-                    selected: _filterType == 'trash',
+                    selected: _navIndex == 3,
                     onTap: () {
                       setState(() {
-                        _filterType = 'trash';
+                        _navIndex = 3;
                       });
                       Navigator.pop(context);
                     },
@@ -522,7 +682,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '$totalNotesCount catatan aktif • $pinnedNotesCount disematkan',
+                            '$totalNotesCount catatan aktif • $pinnedNotesCount disematkan • Geser kartu untuk mengarsipkan',
                             style: TextStyle(
                               fontSize: 12,
                               color: isDark ? Colors.white70 : Colors.black54,
@@ -531,6 +691,73 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Archive Banner View
+          if (_filterType == 'archived')
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.indigo.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.archive_rounded,
+                          color: Colors.indigo,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$archivedNotesCount Catatan Diarsip 📦',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.indigo,
+                              ),
+                            ),
+                            const Text(
+                              'Geser kartu untuk memulihkan ke utama',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.indigo,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    if (archivedNotesCount > 0)
+                      TextButton.icon(
+                        icon: const Icon(Icons.unarchive_rounded, size: 16),
+                        label: const Text('Pulihkan Semua'),
+                        onPressed: () {
+                          setState(() {
+                            _repository.unarchiveAll();
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Semua catatan berhasil dipulihkan dari arsip! ✨',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -639,24 +866,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _filterType == 'trash'
-                              ? Icons.delete_sweep_rounded
-                              : Icons.note_alt_outlined,
+                          _filterType == 'archived'
+                              ? Icons.archive_outlined
+                              : (_filterType == 'trash'
+                                    ? Icons.delete_sweep_rounded
+                                    : Icons.note_alt_outlined),
                           size: 72,
                           color: theme.colorScheme.outline,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          _filterType == 'trash'
-                              ? 'Kotak sampah kosong'
-                              : 'Belum ada catatan nih 📝',
+                          _filterType == 'archived'
+                              ? 'Arsip catatan masih kosong 📦'
+                              : (_filterType == 'trash'
+                                    ? 'Kotak sampah kosong'
+                                    : 'Belum ada catatan nih 📝'),
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.outline,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        if (_filterType != 'trash')
+                        if (_filterType == 'active')
                           Text(
                             'Tekan tombol + di bawah untuk membuat catatan baru!',
                             style: theme.textTheme.bodyMedium?.copyWith(
@@ -679,38 +910,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: displayedNotes.length,
                     itemBuilder: (context, index) {
                       final note = displayedNotes[index];
-                      return NoteCard(
-                        note: note,
-                        onTap: () => _showNoteDetails(note),
-                        onTogglePin: () {
-                          setState(() {
-                            _repository.togglePin(note.id);
-                          });
-                        },
-                        onToggleArchive: () {
-                          setState(() {
-                            if (note.isTrashed) {
-                              _repository.restoreFromTrash(note.id);
-                            } else {
-                              _repository.toggleArchive(note.id);
-                            }
-                          });
-                        },
-                        onDeleteOrTrash: () {
-                          setState(() {
-                            if (note.isTrashed) {
-                              _repository.deletePermanently(note.id);
-                            } else {
-                              _repository.moveToTrash(note.id);
-                            }
-                          });
-                        },
-                        onToggleTodo: (todoId) {
-                          setState(() {
-                            _repository.toggleTodoStatus(note.id, todoId);
-                          });
-                        },
-                      );
+                      return _buildNoteCardItem(note);
                     },
                   )
                 : ListView.builder(
@@ -720,41 +920,48 @@ class _HomeScreenState extends State<HomeScreen> {
                       final note = displayedNotes[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: NoteCard(
-                          note: note,
-                          onTap: () => _showNoteDetails(note),
-                          onTogglePin: () {
-                            setState(() {
-                              _repository.togglePin(note.id);
-                            });
-                          },
-                          onToggleArchive: () {
-                            setState(() {
-                              if (note.isTrashed) {
-                                _repository.restoreFromTrash(note.id);
-                              } else {
-                                _repository.toggleArchive(note.id);
-                              }
-                            });
-                          },
-                          onDeleteOrTrash: () {
-                            setState(() {
-                              if (note.isTrashed) {
-                                _repository.deletePermanently(note.id);
-                              } else {
-                                _repository.moveToTrash(note.id);
-                              }
-                            });
-                          },
-                          onToggleTodo: (todoId) {
-                            setState(() {
-                              _repository.toggleTodoStatus(note.id, todoId);
-                            });
-                          },
-                        ),
+                        child: _buildNoteCardItem(note),
                       );
                     },
                   ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _navIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _navIndex = index;
+          });
+        },
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.note_alt_outlined),
+            selectedIcon: Icon(Icons.note_alt_rounded),
+            label: 'Catatan',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.push_pin_outlined),
+            selectedIcon: Icon(Icons.push_pin_rounded),
+            label: 'Disematkan',
+          ),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: archivedNotesCount > 0,
+              label: Text('$archivedNotesCount'),
+              child: const Icon(Icons.archive_outlined),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: archivedNotesCount > 0,
+              label: Text('$archivedNotesCount'),
+              child: const Icon(Icons.archive_rounded),
+            ),
+            label: 'Arsip',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.delete_outline_rounded),
+            selectedIcon: Icon(Icons.delete_rounded),
+            label: 'Sampah',
           ),
         ],
       ),
